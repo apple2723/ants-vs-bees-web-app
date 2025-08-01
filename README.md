@@ -15,6 +15,8 @@ Current Tests:
 
 > pytest
 
+<br>
+
 ## Roadmap of Development (Extensions) 
 
 After taking the completed game from the project description, our app implements the following steps: 
@@ -24,7 +26,6 @@ After taking the completed game from the project description, our app implements
 This is not so much shown in the code but will be reflected in how we interact with the app. 
 
 <hr>
-<br>
 
 ### 2. Automated Testing with PyTest 
 
@@ -35,14 +36,12 @@ This is not so much shown in the code but will be reflected in how we interact w
 Tests are easily extensible and modularized. 
 
 <hr>
-<br>
 
 ### 3. Continuous Integration (CI) 
 
 We will set up **Github Actions** so that every push to the project repo automatically runs the entire folder of tests and gives a pass or fail report. 
 
 <hr>
-<br>
 
 ### 4. Scoring System 
 
@@ -52,7 +51,6 @@ We will set up **Github Actions** so that every push to the project repo automat
 - write tests to test our scoring works / changes 
 
 <hr>
-<br>
 
 ### 5. Front-end Development with Flask 
 
@@ -62,7 +60,6 @@ Game is already Flask based but we will work on extending the functionality of F
 - change Flask routes so that there are multiple routes to go to / from 
 
 <hr>
-<br>
 
 ### 6. (Optional) Advanced Web Framework 
 
@@ -72,7 +69,6 @@ integrate with it and its functionality. Most production web apps in Python do *
 We can swap out Flask and use a more advanced and powerful web framework, *e.g.* **FastAPI** *or* **Django** 
 
 <hr>
-<br>
 
 ### 7. User Accounts and Login (SQL / Databases) 
 
@@ -81,7 +77,6 @@ We can swap out Flask and use a more advanced and powerful web framework, *e.g.*
 - store user profiles / accounts, scores, and game settings in the database 
 
 <hr>
-<br>
 
 ### 8. (Optional) Extend Game 
 
@@ -92,7 +87,6 @@ We can swap out Flask and use a more advanced and powerful web framework, *e.g.*
 
 
 <hr>
-<br>
 
 ### 9. Deployment 
 
