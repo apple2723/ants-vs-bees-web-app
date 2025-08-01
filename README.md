@@ -3,6 +3,10 @@
 This web-based game is an extension of the original **Ants vs Some Bees** game that is taught as a project in UC Berkeley's C88C / CS61 course; Data Structures.
 
 Our app extends the functionality of the original game with some major changes. 
+## Tests
+
+To run tests on this program, we use PyTest based unit testing.
+
 
 ## Roadmap of Development (Extensions) 
 
