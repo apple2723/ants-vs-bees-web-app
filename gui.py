@@ -143,7 +143,7 @@ class GUI:
 
     def _init_places(self, gamestate):
         """Calculate all of our place data"""
-        self.places = {};
+        self.places = {}
         self.images = { 'AntQueen': dict() }
         rows = 0
         cols = 0

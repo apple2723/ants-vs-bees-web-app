@@ -894,7 +894,7 @@ class GameState:
     bee_entrances -- A list of places that bees can enter
     """
 
-    def __init__(self, strategy, beehive, ant_types, create_places, dimensions, food=2, canhavequeenant=True):
+    def __init__(self, strategy, beehive, ant_types, create_places, dimensions, food=2, canhavequeenant=True, points=50):
         """Create an GameState for simulating a game.
 
         Arguments:
@@ -913,6 +913,7 @@ class GameState:
         self.active_bees = []
         self.configure(beehive, create_places)
         self.canhavequeenant = canhavequeenant
+        self.points = points
 
     def configure(self, beehive, create_places):
         """Configure the places in the colony."""
@@ -946,6 +947,8 @@ class GameState:
                 if num_bees == 0:
                     raise AntsWinException()
                 self.time += 1
+                # Points decrease by 1 when time goes up by 1
+                self.points -= 1
         except AntsWinException:
             print('All bees are vanquished. You win!')
             return True
