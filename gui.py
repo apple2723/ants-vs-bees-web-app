@@ -39,11 +39,15 @@ INSECT_FILES = {
 }
 
 class GUI:
-    """Browser based GUI that communicates with Python game engine"""
+    """Browser based GUI that communicates with Python game engine and JS front end"""
 
     def __init__(self):
         self.active = True
         self.cleanState()
+
+    def get_points(self):
+        print ("[gui.py] function: get_points")
+        return self.newState["points"]
 
     def cleanState(self):
         self.initialized = False
@@ -92,6 +96,8 @@ class GUI:
         self.ant_type_selected = -1
         self.saveState("strategyTime", STRATEGY_SECONDS)
         self.saveState("food", self.gamestate.food)
+        self.saveState("points", self.gamestate.points)
+        print (f"[gui.py] function: initialize_colony_graphics, Points: {self.gamestate.points} & Food: {self.gamestate.food}")
         self.ant_types = self.get_ant_types()
         self._init_places(gamestate)
         self.saveState("places", self.places)
@@ -99,7 +105,7 @@ class GUI:
         self.initialized = True
 
     def get_ant_types(self, noSave=False):
-        ant_types = [];
+        ant_types = []
         for name, ant_type in self.gamestate.ant_types.items():
             ant_types.append({"name": name, "cost": ant_type.food_cost, "img": self.get_insect_img_file(name)})
 
@@ -127,10 +133,18 @@ class GUI:
         if not self.initialized:
             #No, so do that now
             self.initialize_colony_graphics(gamestate)
+        import pdb
+        #pdb.set_trace()
+        data = self.state.getState()
+        #print (f"[gui.py] strategy function, State: {data['points']}")
         elapsed = 0 #Physical time elapsed this turn
+        #print (f"[gui.py] function: strategy, Points: {data['points']} & Time: {gamestate.time}")
         self.saveState("time", int(elapsed))
+        self.saveState("points", self.gamestate.points)
         while elapsed < STRATEGY_SECONDS:
+            #print (f"[gui.py] function: strategy, Points: {gamestate.points} & Time: {gamestate.time}")
             self.saveState("time", gamestate.time)
+            self.saveState("points", self.gamestate.points)
             self._update_control_panel(gamestate)
             sleep(0.25)
             elapsed += 0.25

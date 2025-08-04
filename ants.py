@@ -627,6 +627,9 @@ class Bee(Insect):
                 self.slow_turns -= 1
 
         if self.blocked():
+            # If an ant dies, subtract 7 points
+            if self.damage >= self.place.ant.health:
+                gamestate.points -=7
             self.sting(self.place.ant)
         
         elif self.scared_turns > 0:
@@ -933,6 +936,7 @@ class GameState:
         num_bees = len(self.bees)
         try:
             while True:
+                print(f"[ants.py] simulate function Time: {self.time}, Points: {self.points}, Food: {self.food}")
                 self.beehive.strategy(self)         # Bees invade
                 self.strategy(self)                 # Ants deploy
                 for ant in self.ants:               # Ants take actions
@@ -944,13 +948,15 @@ class GameState:
                     if bee.health <= 0:
                         num_bees -= 1
                         self.active_bees.remove(bee)
+                        #Destroying a bee gives 5 points
+                        self.points +=5
                 if num_bees == 0:
                     raise AntsWinException()
                 self.time += 1
                 # Points decrease by 1 when time goes up by 1
                 self.points -= 1
         except AntsWinException:
-            print('All bees are vanquished. You win!')
+            print(f'All bees are vanquished. Your score: {self.points}. You win!')
             return True
         except AntsLoseException:
             print('The ant queen has perished. Please try again.')
@@ -980,6 +986,7 @@ class GameState:
 
     def remove_ant(self, place_name):
         """Remove an Ant from the game."""
+        #print (f"[ants.py] remove_ant function, Ant dies, point -7 :{self.points}")
         place = self.places[place_name]
         if place.ant is not None:
             place.remove_insect(place.ant)

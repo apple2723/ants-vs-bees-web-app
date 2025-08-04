@@ -88,7 +88,8 @@ class AntsGUI:
         """Create canvas, control panel, places, and labels."""
         self.initialized = True
         self.canvas = graphics.Canvas()
-        self.food_text = self.canvas.draw_text('Food: 1  Time: 0', (20, 20))
+        self.food_text = self.canvas.draw_text(f'Food: 1 Points: 50 Time: 0', (20, 20))
+        print (f"[ants_gui.py] function: initialize-colony-graphics, Points: {gamestate.points} & Time: {gamestate.time} & Food: {gamestate.food}")
         self.ant_text = self.canvas.draw_text('Ant selected: None', (20, 140))
         self._click_rectangles = list()
         self._init_control_panel(gamestate)
@@ -183,7 +184,9 @@ class AntsGUI:
         while elapsed < STRATEGY_SECONDS:
             self._update_control_panel(gamestate)
             self._update_places(gamestate)
-            msg = 'Food: {0}  Time: {1}'.format(gamestate.food, gamestate.time)
+            #msg = 'Food: {0} Points:{50} Time: {1}'.format(gamestate.food, gamestate.points, gamestate.time)
+            msg = f"Food: {gamestate.food} Points:{gamestate.points} Time: {gamestate.time}"
+            print (f"[ants_gui.py] function: strategy, Points: {gamestate.points} & Time: {gamestate.time} & Food: {gamestate.food}")
             self.canvas.edit_text(self.food_text, text=msg)
             pos, el = self.canvas.wait_for_click(STRATEGY_SECONDS - elapsed)
             elapsed += el

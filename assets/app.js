@@ -72,7 +72,15 @@ function drawInitialPlaces() {
 
 
 function updateFoodCount() {
-    $('#foodCount').html(gui.get_food());
+    const food = gui.get_food();
+    console.log(`[app.js] UpdateFoodCount: ${food}`);
+    $('#foodCount').html(food);
+}
+
+function updatePointsCount() {
+    const points = gui.get_points();
+    console.log(`[app.js] UpdatePointsCount: ${points}`);
+    $('#pointsCount').html(points);
 }
 
 function startGame() {
@@ -168,11 +176,16 @@ GUI.prototype.get_selectedAnt = function() {
 GUI.prototype.get_time = function() {
     return this.newState["time"];
 }
+GUI.prototype.get_points = function() {
+    return this.newState["points"];
+}
 GUI.prototype.is_gameOver = function() {
     return this.newState["gameOver"];
 }
 GUI.prototype.updateTime = function() {
-     $('#timeCount').html(this.get_time());
+    const time = this.get_time();
+    console.log(`[app.js] UpdateTimeCount: ${time}`);
+    $('#timeCount').html(time);
 }
 GUI.prototype.get_strategyTime = function() {
     return this.newState["strategyTime"];
@@ -360,6 +373,7 @@ GUI.prototype.update = function() {
     updateControlPanel();
     this.updateTime();
     updateFoodCount();
+    updatePointsCount();
     this.moveBees();
     this.removeAnts();
     places = this.get_places();
