@@ -4,6 +4,8 @@
 
 This web-based game is an extension of the original **Ants vs Some Bees** game that is taught as a project in UC Berkeley's C88C / CS61 course; Data Structures.
 
+![Image of how data flows in web app](data_flow_ants_vs_bees.png)
+
 Our app extends the functionality of the original game with some major changes. 
 
 <br>
@@ -26,13 +28,13 @@ Current Tests:
 
 After taking the completed game from the project description, our app implements the following steps: 
 
-### 1. Version Control with Git and Github 
+### (IN PROGRESS) 1. Version Control with Git and Github 
 
 This is not so much shown in the code but will be reflected in how we interact with the app. 
 
 <hr>
 
-### 2. Automated Testing with PyTest 
+### (IN PROGRESS) 2. Automated Testing with PyTest 
 
 - add **tests/** directory for all test files 
 - include **PyTest** in the *requirements.txt* file 
@@ -42,13 +44,13 @@ Tests are easily extensible and modularized.
 
 <hr>
 
-### 3. Continuous Integration (CI) 
+### (COMPLETE) 3. Continuous Integration (CI) 
 
 We will set up **Github Actions** so that every push to the project repo automatically runs the entire folder of tests and gives a pass or fail report. 
 
 <hr>
 
-### 4. Scoring System 
+### (COMPLETE) 4. Simple Scoring System 
 
 - add scoring system to **GameState** class 
 - add points for killing bees, subtract points for time, subtract points for bees killing ants 
@@ -63,6 +65,21 @@ Game is already Flask based but we will work on extending the functionality of F
 
 - add form for user to pick difficulty of the game before game starts 
 - change Flask routes so that there are multiple routes to go to / from 
+
+#### Task for Aug 5, 2025: 
+
+In an effort to better separate the logic in the game and web app componenets of this project, we are going to create a game engine file and then separately have **Flask** based server side functionality (instead of the basic HTTP code in gui.py).
+
+**Your task:** 
+
+- create a new file called **ants_engine.py** at the same level in the project as ants.py, gui.py, etc. 
+- inside of ants_engine.py, copy over the Place, Insect, Ant, Bee, and variants of Ants and Bees classes only from ants.py 
+- write a test file in tests/ that has 3 functions that do some basic tests of this new ants_engine.py file to ensure the classes are working as before (when they were in ants.py) 
+- when this test works by executing it in Terminal, then delete the classes from ants.py that you just put inside of ants_engine.py 
+- then, inside of ants.py, import all of the classes from ants_engine.py 
+- go and run the game to ensure that it works 
+- then, once it works, do the appropriate steps to stage the changes, commit them (with a descriptive message), and push to the github repo 
+
 
 <hr>
 
