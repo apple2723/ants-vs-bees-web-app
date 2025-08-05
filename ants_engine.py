@@ -1,7 +1,7 @@
 import random
 from ucb import main, interact, trace
 from collections import OrderedDict
-s
+
 ################
 # Core Classes #
 ################
