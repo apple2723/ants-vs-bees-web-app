@@ -1,4 +1,4 @@
-from ants import Place, Insect, Ant, Bee, HarvesterAnt, FireAnt, LongThrower, ThrowerAnt, GameState
+from ants_engine import Place, Insect, Ant, Bee, HarvesterAnt, FireAnt, LongThrower, ThrowerAnt, GameState
 import pytest
 
 class ToyGameState:

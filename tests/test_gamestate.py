@@ -1,5 +1,6 @@
-from ants import *
-from ants_plans import make_test_assault_plan
+from ants_engine import *
+from ants import * 
+#from ants_plans import make_test_assault_plan
 from ants_gui import *
 import pytest
 

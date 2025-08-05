@@ -1,5 +1,5 @@
-import ants
-from ants import AssaultPlan
+#import ants
+#from ants import AssaultPlan
 
 def make_test_assault_plan(ants_impl=None):
     ants_impl = ants_impl or ants

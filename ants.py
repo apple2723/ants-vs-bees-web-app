@@ -96,29 +96,7 @@ def api_deploy():
 # NOTE: check very end of this file for last additional change!
 # --- END API hooks ---------
 
-#--------------------------------------------------
-# Exceptions (need to figure out place for these...) 
-#--------------------------------------------------
 
-class GameOverException(Exception):
-    """Base game over Exception."""
-    pass
-
-class AntsWinException(GameOverException):
-    """Exception to signal that the ants win."""
-    pass
-
-class AntsLoseException(GameOverException):
-    """Exception to signal that the ants lose."""
-    pass
-
-class DuplicateQueensException(Exception):
-    """Occurs when more than one queen gets created."""
-    pass
-
-class NotEnoughFoodException(Exception):
-    """Occurs when there is not enough food to create an Ant."""
-    pass
 
 
 # * Last change added to setup basic Flask api endpoint routing * 
