@@ -1,4 +1,21 @@
-"""CS 88 presents Ants Vs. SomeBees."""
+"""Ants Vs. Bees (extension)"""
+
+from flask import Flask, jsonify
+
+# --- Begin tiny REST API --- 
+app = Flask(__name__)
+
+@app.route('/api/state')
+def api_state():
+    return jsonify({
+        'status' : 'ok',
+        'time'   : 0,
+        'food'   : 0,
+        'points' : 0    # <- placeholder values...
+    })
+
+# NOTE: check very end of this file for last additional change!
+# --- END API hooks ---------
 
 import random
 from ucb import main, interact, trace
@@ -279,3 +296,8 @@ class AssaultPlan(dict):
     def all_bees(self):
         """Place all Bees in the beehive and return the list of Bees."""
         return [bee for wave in self.values() for bee in wave]
+
+
+# * Last change added to setup basic Flask api endpoint routing * 
+if __name__ == '__main__':
+    app.run(debug = True)
