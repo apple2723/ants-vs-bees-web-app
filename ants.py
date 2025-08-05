@@ -14,6 +14,19 @@ def api_state():
         'points' : 0    # <- placeholder values...
     })
 
+@app.route('/api/points')
+def api_points():
+    return jsonify({
+        'points' : GameState.points    # <- placeholder values...
+    })
+
+@app.route('/api/time-step', methods = ["POST"])
+def api_time_step():
+    GameState.time += 1
+    return jsonify({
+        'time' : GameState.time    # <- placeholder values...
+    })
+
 # NOTE: check very end of this file for last additional change!
 # --- END API hooks ---------
 
