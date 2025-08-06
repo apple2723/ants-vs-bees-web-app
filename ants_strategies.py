@@ -1,4 +1,4 @@
-from ants_plans import *
+from ants_engine import *
 
 def start_with_strategy(args, strategy, ants):
     """Reads command-line arguments and starts a game with those options."""

@@ -1,4 +1,4 @@
-import ants
+import ants_engine
 import ants_strategies
 import utils
 import state
@@ -182,7 +182,7 @@ class GUI:
             self.beeToId[bee] = self.currentBeeId
             self.currentBeeId += 1
         self.saveState("rows", len(self.places))
-        self.saveState("places", self.places);
+        self.saveState("places", self.places)
 
 
     def update_food(self):
