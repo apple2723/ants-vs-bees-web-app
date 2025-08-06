@@ -116,8 +116,8 @@ def api_deploy():
 # Route to serve the main site
 @app.route("/")
 def index():
-    return send_from_directory("static", "gui.html")
-
+    #return send_from_directory("static", "gui.html")
+    return app.send_static_file('gui.html')
 
 # * Last change added to setup basic Flask api endpoint routing * 
 if __name__ == '__main__':
