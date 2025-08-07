@@ -16,9 +16,59 @@ gs = ants_engine.GameState(
     beehive = ants_engine.Hive(ants_engine.make_normal_assault_plan()),
     ant_types = ants_engine.ant_types(),
     create_places = ants_engine.dry_layout,
-    dimensions=(3, 9),
+    #dimensions=(3, 9),
+    dimensions = (1, 1), 
     food=4
 )
+
+gs_3_x_9 = ants_engine.GameState(
+    strategy = ants_engine.interactive_strategy,
+    beehive = ants_engine.Hive(ants_engine.make_normal_assault_plan()),
+    ant_types = ants_engine.ant_types(),
+    create_places = ants_engine.dry_layout,
+    dimensions=(3, 9),
+    #dimensions = (1, 1), 
+    food=4
+)
+
+#--------------------------------------------------
+# Utility functions: serialization  
+#--------------------------------------------------
+
+def serialize_ant_types(ant_types):
+    """Turn gs.ant_types OrderedDict(name→class) into a JSON Serializable list (i.e. list of dictionaries).
+    
+    In other words, this function just takes the ant_types of a gamestate instance and turns them into a bunch 
+    of nested dictionaries so that they are able to be turned into JSON (i.e. Serialized)."""
+    out = []
+    for name, AntClass in ant_types.items():
+        out.append({
+            "name":      name,
+            "cost":      AntClass.food_cost,
+            # we will include images for each Ant later:
+            # "img":       AntClass.image_filename,
+        })
+    return out
+
+def serialize_places(places):
+    """Turn gs.places into the { row: { col: cell_dict, … }, … } structure that JSON Serialization requires.
+    
+    In other words, this function just takes the places of a gamestate instance and turns them into a bunch 
+    of nested dictionaries so that they are able to be turned into JSON (i.e. Serialized)."""
+    grid = {}
+    for place_name, place in places.items():
+        if getattr(place, "is_hive", False):
+            continue
+        kind, row_s, col_s = place_name.split("_", 2)
+        row, col = int(row_s), int(col_s)
+        grid.setdefault(row, {})[col] = {
+            "name":     place_name,
+            "type":     "water" if isinstance(place, ants_engine.Water) else "tunnel",
+            "water":    1 if isinstance(place, ants_engine.Water) else 0,
+            "insects":  {}   # filled in separately by your front-end
+        }
+    return grid
+
 
 #--------------------------------------------------
 # Begin tiny REST api via Flask  
@@ -39,11 +89,16 @@ def api_state():
 
     curl localhost:5000/api/state
     """
+    # Print out what the results of serialize_places or serialize_ant_types is here (before and after).
+
     return jsonify({
         'status' : 'ok',
         'time'   : gs.time,
         'food'   : gs.food,
-        'points' : gs.points    
+        'points' : gs.points,
+        'rows' : gs.dimensions[0],
+        'ant_types' : serialize_ant_types(gs.ant_types),
+        'places' : serialize_places(gs.places)
     })
 
 @app.route('/api/points')
