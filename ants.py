@@ -11,13 +11,14 @@ from flask import Flask, jsonify, request, send_from_directory
 #--------------------------------------------------
 # Make a sample gamestate instance 
 #--------------------------------------------------
+
 gs = ants_engine.GameState(
     strategy = ants_engine.interactive_strategy,
     beehive = ants_engine.Hive(ants_engine.make_normal_assault_plan()),
     ant_types = ants_engine.ant_types(),
     create_places = ants_engine.dry_layout,
     #dimensions=(3, 9),
-    dimensions = (1, 1), 
+    dimensions = (2,9), 
     food=4
 )
 
@@ -34,6 +35,26 @@ gs_3_x_9 = ants_engine.GameState(
 #--------------------------------------------------
 # Utility functions: serialization  
 #--------------------------------------------------
+INSECT_IMGS = {
+       'Worker': "assets/insects/ant_harvester.gif",
+       'Thrower': "assets/insects/ant_thrower.gif",
+       'Long': "assets/insects/ant_longthrower.gif",
+       'Short': "assets/insects/ant_shortthrower.gif",
+       'Harvester': "assets/insects/ant_harvester.gif",
+       'Fire': "assets/insects/ant_fire.gif",
+       'Bodyguard': "assets/insects/ant_bodyguard.gif",
+       'Hungry': "assets/insects/ant_hungry.gif",
+       'Slow': "assets/insects/ant_slow.gif",
+       'Scary': "assets/insects/ant_scary.gif",
+       'Laser': "assets/insects/ant_laser.gif",
+       'Ninja': "assets/insects/ant_ninja.gif",
+       'Wall': "assets/insects/ant_wall.gif",
+       'Scuba': "assets/insects/ant_scuba.gif",
+       'Queen': "assets/insects/ant_queen.gif",
+       'Tank': "assets/insects/ant_tank.gif",
+       'Bee': "assets/insects/bee.gif",
+       'Remover': "assets/insects/remove.png",
+}
 
 def serialize_ant_types(ant_types):
     """Turn gs.ant_types OrderedDict(name→class) into a JSON Serializable list (i.e. list of dictionaries).
@@ -46,7 +67,7 @@ def serialize_ant_types(ant_types):
             "name":      name,
             "cost":      AntClass.food_cost,
             # we will include images for each Ant later:
-            # "img":       AntClass.image_filename,
+            "img":       INSECT_IMGS.get(name,"assets/insects/ant_harvester.gif")
         })
     return out
 
@@ -90,7 +111,8 @@ def api_state():
     curl localhost:5000/api/state
     """
     # Print out what the results of serialize_places or serialize_ant_types is here (before and after).
-
+    #print (f"places: {gs.places}")
+    #print (f"{serialize_places(gs.places)}")
     return jsonify({
         'status' : 'ok',
         'time'   : gs.time,
@@ -164,6 +186,27 @@ def api_deploy():
     except Exception as e:
         # If error -> below is thrown 
         return jsonify({ 'status': 'error', 'message': str(e) }), 400
+    
+@app.route('/api/new-game', methods = ["POST"])
+def api_new_game():
+    """
+    Can use this route to make the game restart and start a new one. 
+
+    In Terminal, excute this route with:
+
+    curl -XPOST localhost:5000/api/new-game
+    """
+    global gs
+    gs = ants_engine.GameState(
+            strategy = ants_engine.interactive_strategy,
+            beehive = ants_engine.Hive(ants_engine.make_normal_assault_plan()),
+            ant_types = ants_engine.ant_types(),
+            create_places = ants_engine.dry_layout,
+            dimensions = (2,9), 
+            food=4
+    )
+    return jsonify({ 'status': 'ok'})
+
 
 # NOTE: check very end of this file for last additional change!
 # --- END API hooks ---------

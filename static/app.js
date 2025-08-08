@@ -78,6 +78,7 @@ function updateControlPanel() {
 
 // Draw the ant‐selection panel
 function drawControlPanel(food, antTypes) {
+  console.log("[app.js] in drawControlPanel function");
   var tr = $('#antsTableRow').empty();
 
   if (!Array.isArray(antTypes)) {
@@ -102,10 +103,12 @@ function drawControlPanel(food, antTypes) {
       .append('<span class="badge ant-cost">' + ant.cost + '</span>');
     tr.append(td);
   });
+  console.log("[app.js] at end of drawControlPanel function");
 }
 
 // Draw the initial tunnel/grid
 function drawInitialPlaces(places, rows) {
+  console.log("[app.js] in drawInitialPlaces function");
   var pTable = $('.places-table').empty();
   for (var r = 0; r < rows; r++) {
     var tr = $('<tr id="pRow' + r + '">');
@@ -118,6 +121,7 @@ function drawInitialPlaces(places, rows) {
             .addClass("places-td")
             .append('<div class="tunnel-div"><div class="tunnel-img-container"></div></div>');
       tr.append(td);
+      console.log("[app.js] at end of drawControlPanel function");
     });
     // beehive in column r=0 only
     if (r === 0) {
@@ -126,11 +130,6 @@ function drawInitialPlaces(places, rows) {
     }
     pTable.append(tr);
   }
-}
-
-// Move bees & animate removals (same logic as before)
-function updatePlacesAndBees(places) {
-  // …copy in your old moveBees() and removeAnts() code here…
 }
 
 // ——————————————————————————————
@@ -204,21 +203,28 @@ $(function () {
 
 function updatePlacesAndBees(places) {
   // Minimal: if a cell reports an ant image, render it
+  console.log("[app.js] in updatePlacesAndBees function");
   for (var r in places) {
+    console.log("[app.js] in updatePlacesAndBees function(first for)");
     if (!places.hasOwnProperty(r)) continue;
     for (var c in places[r]) {
+      console.log("[app.js] in updatePlacesAndBees function(second for)");
       if (!places[r].hasOwnProperty(c)) continue;
       var cell = places[r][c];
       var $td = $('.places-td[data-row="' + r + '"][data-col="' + c + '"] .tunnel-img-container');
+      console.log("[app.js] in updatePlacesAndBees function, cell: ", cell);
       if (cell.insects && cell.insects.img) {
+        console.log("[app.js] in updatePlacesAndBees function(innermost if loop)");
         // Single ant MVP (container/contained can come later)
         var html = '<img class="active-ant" src="' + cell.insects.img + '">';
         $td.html(html);
+        console.log("[app.js] in updatePlacesAndBees function(innermost if loop after setting html)");
       } else {
         $td.empty();
       }
     }
   }
+  console.log("[app.js] at end of updatePlacesAndBees function");
 }
 
 
@@ -242,6 +248,7 @@ $('#playBtn').on('click', function () {
 });
 
 function applyStateAndDraw(state) {
+  console.log("[app.js] in applyStateAndDraw function");
   gui.food     = state.food ?? 0;
   gui.time     = state.time ?? 0;
   gui.points   = state.points ?? 0;
