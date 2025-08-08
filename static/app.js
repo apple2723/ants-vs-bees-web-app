@@ -79,10 +79,19 @@ function updateControlPanel() {
 // Draw the ant‐selection panel
 function drawControlPanel(food, antTypes) {
   var tr = $('#antsTableRow').empty();
+
+  if (!Array.isArray(antTypes)) {
+    console.warn("antTypes missing/invalid; skipping panel draw");
+    return;
+  }
+
+  // If this function is running, then why do we not see the game board? 
+
   antTypes.forEach(function(ant) {
     var td = $('<td>')
       .data("name",     ant.name)
       .data("cost",     ant.cost)
+      .data("img",      ant.img || "")          // NEW: store img if provided
       .data("disabled", ant.cost > food ? 1 : 0)
       .addClass( ant.cost > food ? "ant-row ant-inactive" : "ant-row" )
       .attr("id", "ant_" + ant.name)
@@ -153,30 +162,34 @@ $('.places-table').on('click', '.places-td', function() {
 // ——————————————————————————————
 // 5) Kick off the loop
 
-$(function() {
-  // 1) Initial draw
-  fetchState().done(function(state) {
-    gui.food     = state.food;
-    gui.time     = state.time;
-    gui.points   = state.points;
-    gui.rows     = state.rows;
-    gui.antTypes = state.ant_types;
-    gui.places   = state.places;
+$(function () {
+  fetchState().done(function (state) {
+    console.log("[/api/state] initial:", state);
+
+    gui.food     = state.food ?? 0;
+    gui.time     = state.time ?? 0;
+    gui.points   = state.points ?? 0;
+    gui.rows     = state.rows ?? 0;
+    gui.antTypes = Array.isArray(state.ant_types) ? state.ant_types : [];
+    gui.places   = state.places ?? {};
 
     drawControlPanel(gui.food, gui.antTypes);
     drawInitialPlaces(gui.places, gui.rows);
     updateFoodCount();
     updateTimeCount();
     updatePointsCount();
+  }).fail(function (xhr) {
+    console.error("Failed to load state:", xhr.status, xhr.responseText);
+    alert("Failed to load /api/state. Check Flask console for errors.");
   });
 
-  // 2) Poll every half‐second
-  setInterval(function() {
-    fetchState().done(function(state) {
-      gui.food   = state.food;
-      gui.time   = state.time;
-      gui.points = state.points;
-      gui.places = state.places;
+  // 2) Poll every half second
+  setInterval(function () {
+    fetchState().done(function (state) {
+      gui.food   = state.food ?? gui.food;
+      gui.time   = state.time ?? gui.time;
+      gui.points = state.points ?? gui.points;
+      gui.places = state.places ?? gui.places;
 
       updateFoodCount();
       updateTimeCount();
@@ -185,4 +198,34 @@ $(function() {
       updatePlacesAndBees(gui.places);
     });
   }, 500);
+});
+
+// ——————————————————————————————
+// PLAY THE GAME: button event handler 
+
+// Show the game, hide the hero
+$('#playBtn').on('click', function () {
+  console.log('[ui] Play clicked');
+
+  // Hide the landing section
+  $('#hero-head').hide();
+
+  // Show the game wrapper
+  $('#gameWrapper').show();
+
+  // bring in a fresh game state from /api/state 
+  fetchState().done(function (state) {
+    gui.food     = state.food ?? 0;
+    gui.time     = state.time ?? 0;
+    gui.points   = state.points ?? 0;
+    gui.rows     = state.rows ?? 0;
+    gui.antTypes = Array.isArray(state.ant_types) ? state.ant_types : [];
+    gui.places   = state.places ?? {};
+
+    drawControlPanel(gui.food, gui.antTypes);
+    drawInitialPlaces(gui.places, gui.rows);
+    updateFoodCount();
+    updateTimeCount();
+    updatePointsCount();
+  });
 });
