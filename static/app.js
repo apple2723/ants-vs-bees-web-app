@@ -46,7 +46,7 @@ function timeStep() {
 }
 
 // ——————————————————————————————
-// 3) UI update functions (unchanged from before except using gui.*)
+// 3) UI update functions 
 
 // Update the little “Food : X” badge
 function updateFoodCount() {
@@ -88,10 +88,11 @@ function drawControlPanel(food, antTypes) {
   // If this function is running, then why do we not see the game board? 
 
   antTypes.forEach(function(ant) {
+    var img = ant.img || '/assets/insects/placeholder.png'; // fallback
     var td = $('<td>')
       .data("name",     ant.name)
       .data("cost",     ant.cost)
-      .data("img",      ant.img || "")          // NEW: store img if provided
+      .data("img",      img)          
       .data("disabled", ant.cost > food ? 1 : 0)
       .addClass( ant.cost > food ? "ant-row ant-inactive" : "ant-row" )
       .attr("id", "ant_" + ant.name)
@@ -163,7 +164,7 @@ $('.places-table').on('click', '.places-td', function() {
 // 5) Kick off the loop
 
 $(function () {
-  fetchState().done(function (state) {
+  /*fetchState().done(function (state) {
     console.log("[/api/state] initial:", state);
 
     gui.food     = state.food ?? 0;
@@ -181,10 +182,11 @@ $(function () {
   }).fail(function (xhr) {
     console.error("Failed to load state:", xhr.status, xhr.responseText);
     alert("Failed to load /api/state. Check Flask console for errors.");
-  });
+  });*/
 
   // 2) Poll every half second
   setInterval(function () {
+    if (!$('#gameWrapper').is(':visible')) return; // guard: only run when game is visible! 
     fetchState().done(function (state) {
       gui.food   = state.food ?? gui.food;
       gui.time   = state.time ?? gui.time;
@@ -200,32 +202,68 @@ $(function () {
   }, 500);
 });
 
-// ——————————————————————————————
-// PLAY THE GAME: button event handler 
+function updatePlacesAndBees(places) {
+  // Minimal: if a cell reports an ant image, render it
+  for (var r in places) {
+    if (!places.hasOwnProperty(r)) continue;
+    for (var c in places[r]) {
+      if (!places[r].hasOwnProperty(c)) continue;
+      var cell = places[r][c];
+      var $td = $('.places-td[data-row="' + r + '"][data-col="' + c + '"] .tunnel-img-container');
+      if (cell.insects && cell.insects.img) {
+        // Single ant MVP (container/contained can come later)
+        var html = '<img class="active-ant" src="' + cell.insects.img + '">';
+        $td.html(html);
+      } else {
+        $td.empty();
+      }
+    }
+  }
+}
 
-// Show the game, hide the hero
+
+// ——————————————————————————————
+// PLAY THE GAME: button event handler and start game
+
+function startGame() {
+  return $.ajax({ url: "/api/new-game", method: "POST" });
+}
+
 $('#playBtn').on('click', function () {
   console.log('[ui] Play clicked');
-
-  // Hide the landing section
   $('#hero-head').hide();
-
-  // Show the game wrapper
   $('#gameWrapper').show();
 
-  // bring in a fresh game state from /api/state 
-  fetchState().done(function (state) {
-    gui.food     = state.food ?? 0;
-    gui.time     = state.time ?? 0;
-    gui.points   = state.points ?? 0;
-    gui.rows     = state.rows ?? 0;
-    gui.antTypes = Array.isArray(state.ant_types) ? state.ant_types : [];
-    gui.places   = state.places ?? {};
+  startGame().always(function () {
+    // First draw after a fresh state
+    fetchState().done(applyStateAndDraw)
+                .fail(showStateError);
+  });
+});
 
-    drawControlPanel(gui.food, gui.antTypes);
-    drawInitialPlaces(gui.places, gui.rows);
-    updateFoodCount();
-    updateTimeCount();
-    updatePointsCount();
+function applyStateAndDraw(state) {
+  gui.food     = state.food ?? 0;
+  gui.time     = state.time ?? 0;
+  gui.points   = state.points ?? 0;
+  gui.rows     = state.rows ?? 0;
+  gui.antTypes = Array.isArray(state.ant_types) ? state.ant_types : [];
+  gui.places   = state.places ?? {};
+
+  drawControlPanel(gui.food, gui.antTypes);
+  drawInitialPlaces(gui.places, gui.rows);
+  updateFoodCount(); updateTimeCount(); updatePointsCount();
+}
+
+function showStateError(xhr) {
+  console.error("Failed to load state:", xhr.status, xhr.responseText);
+  alert("Failed to load /api/state. Check Flask console for errors.");
+}
+
+// EXIT BUTTON: start new-game 
+
+$('#exitBtn').on('click', function () {
+  $.post('/api/new-game').always(function () {
+    $('#gameWrapper').hide();
+    $('#hero-head').show();
   });
 });
