@@ -108,31 +108,6 @@ function drawControlPanel(food, antTypes) {
 
 // Draw the initial tunnel/grid
 function drawInitialPlaces(places, rows) {
-  console.log("[app.js] in drawInitialPlaces function");
-  var pTable = $('.places-table').empty();
-  for (var r = 0; r < rows; r++) {
-    var tr = $('<tr id="pRow' + r + '">');
-    Object.keys(places[r]).forEach(function(c) {
-      var cell = places[r][c],
-          td   = $('<td>')
-            .data("row",   r)
-            .data("col",   c)
-            .data("name",  cell.name)
-            .addClass("places-td")
-            .append('<div class="tunnel-div"><div class="tunnel-img-container"></div></div>');
-      tr.append(td);
-      console.log("[app.js] at end of drawControlPanel function");
-    });
-    // beehive in column r=0 only
-    if (r === 0) {
-      var hiveTd = $('<td rowspan="' + rows + '" class="place-beehive-td">');
-      tr.append(hiveTd);
-    }
-    pTable.append(tr);
-  }
-}
-
-function drawInitialPlaces(places, rows) {
   var $tbody = $('.places-table tbody').empty();
 
   for (var r = 0; r < rows; r++) {
@@ -144,12 +119,19 @@ function drawInitialPlaces(places, rows) {
 
     Object.keys(places[r]).forEach(function(c) {
       var cell = places[r][c];
+      // Randomly pick a sky and ground image for this cell
+      var random_sky = 1+Math.floor(Math.random()*3);
+      var random_ground = 1+Math.floor(Math.random()*3);
       var $td  = $('<td>')
         .data("row",   r)
         .data("col",   c)
         .data("name",  cell.name)
         .addClass("places-td")
-        .append('<div class="tunnel-div"><div class="tunnel-img-container"></div></div>');
+        .append('<div class="tunnel-div">' +
+                '<div class="tunnel-img-container"></div>'+
+                '<div class="tunnel-goc-div" style = "background-image: url(/assets/tiles/sky/'+random_sky+'.png)"></div>'+
+                '<div class="tunnel-goc-div" style = "background-image: url(/assets/tiles/ground/'+random_ground+'.png)"></div>'+
+                '</div>');
       $tr.append($td);
     });
 
@@ -189,6 +171,11 @@ $('.places-table').on('click', '.places-td', function() {
   }
   var place = $(this).data("name");
   deployAnt(place, gui.selectedAnt.name)
+    .done(function() {
+      fetchState().done(function(state){
+        applyStateAndDraw(state);
+      });
+    })
     .fail(function(xhr) {
       alert(xhr.responseJSON.message);
     });
@@ -221,17 +208,19 @@ $(function () {
   // 2) Poll every half second
   setInterval(function () {
     if (!$('#gameWrapper').is(':visible')) return; // guard: only run when game is visible! 
-    fetchState().done(function (state) {
-      gui.food   = state.food ?? gui.food;
-      gui.time   = state.time ?? gui.time;
-      gui.points = state.points ?? gui.points;
-      gui.places = state.places ?? gui.places;
-
-      updateFoodCount();
-      updateTimeCount();
-      updatePointsCount();
-      updateControlPanel();
-      updatePlacesAndBees(gui.places);
+    timeStep().always(function(){
+      fetchState().done(function (state) {
+        gui.food   = state.food ?? gui.food;
+        gui.time   = state.time ?? gui.time;
+        gui.points = state.points ?? gui.points;
+        gui.places = state.places ?? gui.places;
+  
+        updateFoodCount();
+        updateTimeCount();
+        updatePointsCount();
+        updateControlPanel();
+        updatePlacesAndBees(gui.places);
+      });
     });
   }, 500);
 });
