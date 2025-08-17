@@ -83,12 +83,19 @@ def serialize_places(places):
             continue
         kind, row_s, col_s = place_name.split("_", 2)
         row, col = int(row_s), int(col_s)
-        grid.setdefault(row, {})[col] = {
+        cell = {
             "name":    place_name,
             "type":    "water" if isinstance(place, ants_engine.Water) else "tunnel",
             "water":   1 if isinstance(place, ants_engine.Water) else 0,
             "insects": {}
         }
+
+        ant_obj = getattr(place, "ant", None)
+        if ant_obj is not None:
+            ant_name = type(ant_obj).__name__
+            cell["insects"] = {
+                "img" : INSECT_IMGS.get(ant_name, INSECT_IMGS.get("Harvester"))
+            }
 
     # Then, ensure the dict has entries for *all* rows/cols from dimensions
     rows, cols = gs.dimensions

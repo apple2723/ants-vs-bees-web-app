@@ -123,8 +123,8 @@ function drawInitialPlaces(places, rows) {
       var random_sky = 1+Math.floor(Math.random()*3);
       var random_ground = 1+Math.floor(Math.random()*3);
       var $td  = $('<td>')
-        .data("row",   r)
-        .data("col",   c)
+        .attr("data-row",   r)
+        .attr("data-col",   c)
         .data("name",  cell.name)
         .addClass("places-td")
         .append('<div class="tunnel-div">' +
@@ -264,6 +264,8 @@ $('#playBtn').on('click', function () {
   $('#hero-head').hide();
   $('#gameWrapper').show();
 
+  $('.places-table tbody').empty();
+
   startGame().always(function () {
     // First draw after a fresh state
     fetchState().done(applyStateAndDraw)
@@ -282,8 +284,16 @@ function applyStateAndDraw(state) {
   gui.places   = state.places ?? {};
 
   drawControlPanel(gui.food, gui.antTypes);
-  drawInitialPlaces(gui.places, gui.rows);
-  updateFoodCount(); updateTimeCount(); updatePointsCount();
+
+  if ($('.places-table tbody').children().length === 0){
+    drawInitialPlaces(gui.places, gui.rows);
+  };
+
+  updatePlacesAndBees(gui.places);
+  
+  updateFoodCount(); 
+  updateTimeCount(); 
+  updatePointsCount();
 }
 
 function showStateError(xhr) {
