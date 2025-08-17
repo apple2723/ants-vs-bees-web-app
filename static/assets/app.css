@@ -40,6 +40,16 @@ body {
     margin-top: 0px;
 }
 
+/* NEW Aug 17. 2025: css for game board table */
+
+.places-table { border-collapse: collapse; margin-top: 12px; }
+.places-td    { width: 64px; height: 64px; border: 1px solid #444; }
+.tunnel-div   { width: 100%; height: 100%; position: relative; }
+.tunnel-img-container { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.place-beehive-td { width: 80px; border: 2px dashed #666; text-align: center; font-weight: bold; }
+.active-ant   { max-width: 90%; max-height: 90%; }
+
+
 .ants-table {
     background-color: #FFFFFF;
 }

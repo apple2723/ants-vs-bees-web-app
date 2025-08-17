@@ -132,6 +132,41 @@ function drawInitialPlaces(places, rows) {
   }
 }
 
+function drawInitialPlaces(places, rows) {
+  var $tbody = $('.places-table tbody').empty();
+
+  for (var r = 0; r < rows; r++) {
+    if (!places[r]) {
+      console.warn("No places for row", r, "– skipping");
+      continue;
+    }
+    var $tr = $('<tr id="pRow' + r + '">');
+
+    Object.keys(places[r]).forEach(function(c) {
+      var cell = places[r][c];
+      var $td  = $('<td>')
+        .data("row",   r)
+        .data("col",   c)
+        .data("name",  cell.name)
+        .addClass("places-td")
+        .append('<div class="tunnel-div"><div class="tunnel-img-container"></div></div>');
+      $tr.append($td);
+    });
+
+    if (r === 0) {
+      var $hiveTd = $('<td>')
+        .attr('rowspan', rows)
+        .addClass('place-beehive-td')
+        .text('Hive'); // placeholder so the column is visible
+      $tr.append($hiveTd);
+    }
+
+    $tbody.append($tr);
+  }
+}
+
+
+
 // ——————————————————————————————
 // 4) Wire up clicks
 
@@ -249,6 +284,7 @@ $('#playBtn').on('click', function () {
 
 function applyStateAndDraw(state) {
   console.log("[app.js] in applyStateAndDraw function");
+  console.log("[app.js | applyStateAndDraw function] rows:", state.rows, "places:", state.places);
   gui.food     = state.food ?? 0;
   gui.time     = state.time ?? 0;
   gui.points   = state.points ?? 0;

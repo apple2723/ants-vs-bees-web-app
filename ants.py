@@ -77,18 +77,32 @@ def serialize_places(places):
     In other words, this function just takes the places of a gamestate instance and turns them into a bunch 
     of nested dictionaries so that they are able to be turned into JSON (i.e. Serialized)."""
     grid = {}
+    # First, build from actual places
     for place_name, place in places.items():
         if getattr(place, "is_hive", False):
             continue
         kind, row_s, col_s = place_name.split("_", 2)
         row, col = int(row_s), int(col_s)
         grid.setdefault(row, {})[col] = {
-            "name":     place_name,
-            "type":     "water" if isinstance(place, ants_engine.Water) else "tunnel",
-            "water":    1 if isinstance(place, ants_engine.Water) else 0,
-            "insects":  {}   # filled in separately by your front-end
+            "name":    place_name,
+            "type":    "water" if isinstance(place, ants_engine.Water) else "tunnel",
+            "water":   1 if isinstance(place, ants_engine.Water) else 0,
+            "insects": {}
         }
+
+    # Then, ensure the dict has entries for *all* rows/cols from dimensions
+    rows, cols = gs.dimensions
+    for r in range(rows):
+        grid.setdefault(r, {})
+        for c in range(cols):
+            grid[r].setdefault(c, {
+                "name":    f"tunnel_{r}_{c}",
+                "type":    "tunnel",
+                "water":   0,
+                "insects": {}
+            })
     return grid
+
 
 
 #--------------------------------------------------
