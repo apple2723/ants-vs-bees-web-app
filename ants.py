@@ -72,43 +72,75 @@ def serialize_ant_types(ant_types):
     return out
 
 def serialize_places(places):
-    """Turn gs.places into the { row: { col: cell_dict, … }, … } structure that JSON Serialization requires.
-    
-    In other words, this function just takes the places of a gamestate instance and turns them into a bunch 
-    of nested dictionaries so that they are able to be turned into JSON (i.e. Serialized)."""
-    grid = {}
-    # First, build from actual places
+    """Turn gs.places into the { row: { col: cell_dict, … }, … } structure for JSON serialization.
+
+    This function converts the game-state `places` mapping into a nested dictionary
+    keyed by numeric row and col so the front-end can easily consume it.
+    """
+    grid = {}  # top-level dict: row index -> { col index -> cell dict }
+
+    # Build entries from actual place objects present in `places`
     for place_name, place in places.items():
+        # skip hive-like places (we don't render them on the main grid)
         if getattr(place, "is_hive", False):
             continue
+
+        # place_name expected format: "<kind>_<row>_<col>", split into parts
         kind, row_s, col_s = place_name.split("_", 2)
+
+        # convert row/col strings into integers for numeric keys
         row, col = int(row_s), int(col_s)
+
+        # create the minimal cell representation the frontend expects
         cell = {
-            "name":    place_name,
-            "type":    "water" if isinstance(place, ants_engine.Water) else "tunnel",
-            "water":   1 if isinstance(place, ants_engine.Water) else 0,
-            "insects": {}
+            "name":    place_name,                                   # original place name (string)
+            "type":    "water" if isinstance(place, ants_engine.Water) else "tunnel",  # place type
+            "water":   1 if isinstance(place, ants_engine.Water) else 0,             # int flag for convenience
+            "insects": {}                                           # placeholder for insect info (filled below)
         }
 
-        ant_obj = getattr(place, "ant", None)
+        # If an ant object is present on this place, pick an image for it
+        ant_obj = getattr(place, "ant", None)   # get place.ant if it exists, else None
         if ant_obj is not None:
+            # get the class name of the ant, e.g. "HarvesterAnt"
             ant_name = type(ant_obj).__name__
-            cell["insects"] = {
-                "img" : INSECT_IMGS.get(ant_name, INSECT_IMGS.get("Harvester"))
-            }
 
-    # Then, ensure the dict has entries for *all* rows/cols from dimensions
+            # Try to find a matching sprite in INSECT_IMGS robustly:
+            # 1) try the exact class name key
+            # 2) try stripping a trailing "Ant" if present (HarvesterAnt -> Harvester)
+            # 3) fallback to the "Harvester" key (or whatever default your mapping uses)
+            sprite = INSECT_IMGS.get(ant_name)                            # try exact key
+            if sprite is None:
+                sprite = INSECT_IMGS.get(ant_name.replace("Ant", ""))     # try without "Ant"
+            if sprite is None:
+                sprite = INSECT_IMGS.get("Harvester")                    # fallback default key
+
+            # Place the chosen image path (or value) into the cell under insects.img
+            # NOTE: keep the same format your front-end expects (string path or url).
+            cell["insects"] = {"img": sprite}
+
+        # *** CRITICAL FIX ***
+        # Insert this cell into the grid at the numeric row/col location
+        # Use setdefault so the row dict exists (or is created) before assigning the column.
+        grid.setdefault(row, {})[col] = cell
+
+    # Ensure the returned grid has entries for ALL rows and cols as defined by gs.dimensions
     rows, cols = gs.dimensions
     for r in range(rows):
+        # create the row dict if missing
         grid.setdefault(r, {})
         for c in range(cols):
+            # for any missing cell (no actual place object), insert a default empty tunnel cell
             grid[r].setdefault(c, {
                 "name":    f"tunnel_{r}_{c}",
                 "type":    "tunnel",
                 "water":   0,
                 "insects": {}
             })
+
+    # return the fully-populated nested dict
     return grid
+
 
 
 
