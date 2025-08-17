@@ -109,7 +109,7 @@ def serialize_places(places):
 # Begin tiny REST api via Flask  
 #--------------------------------------------------
 app = Flask(__name__,
-            static_url_path="", #This makes it so that the / route will go to gui.html
+            static_url_path="/", #This makes it so that the / route will go to gui.html
             static_folder="static" #This says to serve the site from the folder called static
             )
 
@@ -219,6 +219,10 @@ def api_new_game():
             dimensions = (2,9), 
             food=4
     )
+    try:
+        gs.deploy_ant('tunnel_0_0', 'Harvester')
+    except Exception:
+        pass 
     return jsonify({ 'status': 'ok'})
 
 

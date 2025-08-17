@@ -89,15 +89,15 @@ function drawControlPanel(food, antTypes) {
   // If this function is running, then why do we not see the game board? 
 
   antTypes.forEach(function(ant) {
-    var img = ant.img || '/assets/insects/placeholder.png'; // fallback
+    var img = ant.img || '/assets/insects/ant_harvester.gif';
     var td = $('<td>')
       .data("name",     ant.name)
       .data("cost",     ant.cost)
-      .data("img",      img)          
+      .data("img",      img)
       .data("disabled", ant.cost > food ? 1 : 0)
       .addClass( ant.cost > food ? "ant-row ant-inactive" : "ant-row" )
       .attr("id", "ant_" + ant.name)
-      .append('<img class="ant-img" src="' + ant.img + '"> ')
+      .append('<img class="ant-img" src="' + img + '"> ')
       .append(ant.name)
       .append('<hr class="ant-row-divider">')
       .append('<span class="badge ant-cost">' + ant.cost + '</span>');
