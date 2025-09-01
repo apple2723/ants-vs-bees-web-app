@@ -1,12 +1,28 @@
 """Ants Vs. Bees (extension)"""
 
 import random
+import time
 from ucb import main, interact, trace
 from collections import OrderedDict
 #from ants_engine import *
 import ants_engine      # <-- if import just file, then use file name . class or function name (e.g. ants_engine.GameState())
 
 from flask import Flask, jsonify, request, send_from_directory
+
+GAME_SECONDS = 3
+LAST_TIME_AT = 0
+
+def game_step():
+    global LAST_TIME_AT
+    current_time = time.monotonic()
+
+    #If not enough time has passed, exit without doing anything
+    if (current_time-LAST_TIME_AT) < GAME_SECONDS:
+        return False
+    #If enough time has passed, step once through the game
+    gs.step_once()
+    LAST_TIME_AT = current_time
+    return True
 
 #--------------------------------------------------
 # Make a sample gamestate instance 
@@ -19,7 +35,7 @@ gs = ants_engine.GameState(
     create_places = ants_engine.dry_layout,
     #dimensions=(3, 9),
     dimensions = (2,9), 
-    food=4
+    food=2
 )
 
 gs_3_x_9 = ants_engine.GameState(
@@ -29,7 +45,7 @@ gs_3_x_9 = ants_engine.GameState(
     create_places = ants_engine.dry_layout,
     dimensions=(3, 9),
     #dimensions = (1, 1), 
-    food=4
+    food=2
 )
 
 #--------------------------------------------------
@@ -200,9 +216,12 @@ def api_time_step():
 
     curl -XPOST localhost:5000/api/time-step 
     """
-    gs.time += 1
+    print (f"before time: {gs.time}")
+    did_game_step = game_step()
+    print (f"after time: {gs.time}")
     return jsonify({
-        'time' : gs.time    
+        'time' : gs.time  ,
+        'did_game_step' : did_game_step
     })
 
 @app.route('/api/food-increase', methods = ["POST"])
@@ -222,6 +241,7 @@ def api_food_increase():
 @app.route('/api/deploy', methods=['POST'])
 def api_deploy():
     """
+    Deploys an ant at a specific place.
     Can use this route to test game engine directly or with Flask.
 
     Via Terminal, call with:
@@ -256,12 +276,8 @@ def api_new_game():
             ant_types = ants_engine.ant_types(),
             create_places = ants_engine.dry_layout,
             dimensions = (2,9), 
-            food=4
+            food=2
     )
-    try:
-        gs.deploy_ant('tunnel_0_0', 'Harvester')
-    except Exception:
-        pass 
     return jsonify({ 'status': 'ok'})
 
 

@@ -769,10 +769,10 @@ class LaserAnt(ThrowerAnt):
         insects_and_distances = self.insects_in_front()
         for insect, distance in insects_and_distances.items():
             damage = self.calculate_damage(distance)
-            print (f"Gamestate time & damage: {gamestate.time} & {damage}")
-            print (f"Insect {insect.name}-{insect.id}'s health before laser: {insect.health}")
+            #print (f"Gamestate time & damage: {gamestate.time} & {damage}")
+            #print (f"Insect {insect.name}-{insect.id}'s health before laser: {insect.health}")
             insect.reduce_health(damage)
-            print (f"Insect {insect.name}-{insect.id}'s health after laser: {insect.health}")
+            #print (f"Insect {insect.name}-{insect.id}'s health after laser: {insect.health}")
             if damage:
                 self.insects_shot += 1
 
@@ -903,6 +903,7 @@ class GameState:
 
     Attributes:
     time -- elapsed time
+    points -- game points
     food -- the colony's available food total
     places -- A list of all places in the colony (including a Hive)
     bee_entrances -- A list of places that bees can enter
@@ -929,6 +930,23 @@ class GameState:
         self.canhavequeenant = canhavequeenant
         self.points = points
 
+    def step_once(self):
+        """
+        This method executes one step of the game:
+        - each ant performs action
+        - each bee performs action
+        - game time + 1
+        - update points
+        """
+        ants_snapshot = list(self.ants)
+        #each ant acts now
+        for ant in ants_snapshot:
+            if ant.health > 0:
+                ant.action(self)
+        #each bee acts now
+        self.time +=1
+
+        
     def configure(self, beehive, create_places):
         """Configure the places in the colony."""
         self.base = AntHomeBase('Ant Home Base')
@@ -947,7 +965,7 @@ class GameState:
         num_bees = len(self.bees)
         try:
             while True:
-                print(f"[ants.py] simulate function Time: {self.time}, Points: {self.points}, Food: {self.food}")
+                #print(f"[ants.py] simulate function Time: {self.time}, Points: {self.points}, Food: {self.food}")
                 self.beehive.strategy(self)         # Bees invade
                 self.strategy(self)                 # Ants deploy
                 for ant in self.ants:               # Ants take actions
@@ -1043,9 +1061,11 @@ def ant_types():
     """Return a list of all implemented Ant classes."""
     all_ant_types = []
     new_types = [Ant]
+    #print(f"[ants_engine py] function ant_types, New_types: {new_types}")
     while new_types:
         new_types = [t for c in new_types for t in c.__subclasses__()]
         all_ant_types.extend(new_types)
+    #print (f"[ants_engine py] function ant_types, What function returns: {[t for t in all_ant_types if t.is_implemented]}")
     return [t for t in all_ant_types if t.is_implemented]
 
 def interactive_strategy(gamestate):
@@ -1055,7 +1075,7 @@ def interactive_strategy(gamestate):
     For example, one might deploy a ThrowerAnt to the first tunnel by invoking
     gamestate.deploy_ant('tunnel_0_0', 'Thrower')
     """
-    print('gamestate: ' + str(gamestate))
+    #print('gamestate: ' + str(gamestate))
     msg = '<Control>-D (<Control>-Z <Enter> on Windows) completes a turn.\n'
     interact(msg)
 

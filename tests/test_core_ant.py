@@ -16,6 +16,9 @@ def test_get_state_route(client):
     assert api_dict["points"] == gs.points, f"Api route points: {api_dict.points} is not equal to gamestate points: {gs.points}"
     assert api_dict["time"] == gs.time, f"Api route time: {api_dict.time} is not equal to gamestate time: {gs.time}"
     assert api_dict["food"] == gs.food, f"Api route food: {api_dict.food} is not equal to gamestate food: {gs.food}"
+    assert api_dict["places"] is not None, f"Api route places: {api_dict.places} is not equal to empty dict"
+    assert api_dict["ant_types"] is not None, f"Api route ant_types: {api_dict.ant_types} is not equal to empty list"
+    assert api_dict["rows"] is not None, f"Api route rows: {api_dict.rows} is not equal to 1"
 
 def test_post_time_step_route(client):
     #Look for an increase in time by +1
