@@ -9,10 +9,53 @@ import ants_engine      # <-- if import just file, then use file name . class or
 
 from flask import Flask, jsonify, request, send_from_directory
 
+import threading     # <-- NEW Sept 2, 2025: what does threading and threading.Lock() do? 
+
+STATE_LOCK = threading.Lock()   # <-- Apurva: try to tell Oliver what this STATE_LOCK is doing. 
+
 GAME_SECONDS = 3
 LAST_TIME_AT = 0
+INCLUDE_BEES = False   # <-- NEW Sept 2, 2025: If False = no bees in game, if True = bees in game 
 
-def game_step():
+"""
+Sept 2, 2025 Updates by Oliver: 
+
+- "serialize_place()" function in ants.py now processes any bee at each place if there is one 
+- add "threading" library as an import (above)
+- added example of thread locking to route '/api/state'
+- added 'INCLUDE_BEES' global variable to decide if game should or should not have bees   
+
+Sept 2025 Tasks for Apurva: 
+
+1. In ants_engine.py, update "step_once()" function to implement Bee behavior AFTER ant actions. 
+2. Also in "step_once()" function, add something to update points for every time step. 
+    
+    HINT: What is supposed to happen to points for each +1 of time in our game? Do you remember? 
+    How would you make that happen in "step_once()" function? 
+
+3. Look at lines 12 and 14 of ants.py (above) and the comments next to those lines of code. 
+    
+    Answer the question and attempt to tell Oliver what STATE_LOCK is doing. 
+
+4. Add STATE_LOCK to each function and route that changes the game's state. 
+    
+    HINT: What object or class controls the state of the game? 
+    HINT: See how I did this change in /api/state route if you need. 
+
+5. Add a new route endpoint: '/api/remove' that can be used to remove an ant from a specific place. 
+
+    HINT: Does this route / function get data or does it change / update data? Which method does which? 
+
+6. Complete the new '/api/settings' route and function that Oliver started. 
+
+    NOTE: This route can be used 2 different ways, to get setting values 
+    and also to update setting values. 
+
+    HINT: What are these 2 different ways that a route can be used called? 
+
+"""
+
+def game_step(): 
     global LAST_TIME_AT
     current_time = time.monotonic()
 
@@ -104,8 +147,9 @@ def serialize_places(places):
         # place_name expected format: "<kind>_<row>_<col>", split into parts
         kind, row_s, col_s = place_name.split("_", 2)
 
-        # convert row/col strings into integers for numeric keys
-        row, col = int(row_s), int(col_s)
+        # convert row/col strings into integers for numeric keyss
+        row = int(row_s)
+        col = int(col_s)
 
         # create the minimal cell representation the frontend expects
         cell = {
@@ -135,7 +179,15 @@ def serialize_places(places):
             # NOTE: keep the same format your front-end expects (string path or url).
             cell["insects"] = {"img": sprite}
 
-        # *** CRITICAL FIX ***
+        # count how many bees are physically present on this place at this time step:
+        bee_list = getattr(place, "bees", [])
+
+        if bee_list:
+            cell["bees"] = {
+                "count" : len(bee_list),
+                "img": INSECT_IMGS.get("Bee")
+            }
+
         # Insert this cell into the grid at the numeric row/col location
         # Use setdefault so the row dict exists (or is created) before assigning the column.
         grid.setdefault(row, {})[col] = cell
@@ -179,18 +231,23 @@ def api_state():
 
     curl localhost:5000/api/state
     """
-    # Print out what the results of serialize_places or serialize_ant_types is here (before and after).
-    #print (f"places: {gs.places}")
-    #print (f"{serialize_places(gs.places)}")
-    return jsonify({
-        'status' : 'ok',
-        'time'   : gs.time,
-        'food'   : gs.food,
-        'points' : gs.points,
-        'rows' : gs.dimensions[0],
-        'ant_types' : serialize_ant_types(gs.ant_types),
-        'places' : serialize_places(gs.places)
-    })
+
+    # If we are changing anything in the game, we need to lock it (...why??)
+    with STATE_LOCK:
+        # HINT: nothing else can change the values in gs until this function finishes. 
+
+        # Print out what the results of serialize_places or serialize_ant_types is here (before and after).
+        #print (f"places: {gs.places}")
+        #print (f"{serialize_places(gs.places)}")
+        return jsonify({
+            'status' : 'ok',
+            'time'   : gs.time,
+            'food'   : gs.food,
+            'points' : gs.points,
+            'rows' : gs.dimensions[0],
+            'ant_types' : serialize_ant_types(gs.ant_types),
+            'places' : serialize_places(gs.places)
+        })
 
 @app.route('/api/points')
 def api_points():
@@ -280,6 +337,56 @@ def api_new_game():
     )
     return jsonify({ 'status': 'ok'})
 
+# NEW Sept 2, 2025: Route to either get or update game runtime settings. 
+@app.route('/api/settings', methods = ...)  # <-- WHAT GOES HERE? 
+def api_settings():
+    """
+    This Route can be used to either get or update the settigs, including: 
+
+    - GAME_SECONDS --> the number of real seconds for every game time +1)
+    - INCLUDE_BEES --> True or False, to include bees in game or not 
+
+    NOTE: since we can change GAME_SECONDS from this function, we also 
+    need to reset LAST_TIME_AT variable back to 0. 
+    """
+
+    global GAME_SECONDS, INCLUDE_BEES, LAST_TIME_AT
+
+    if request.method == ...:  # <-- WHAT GOES HERE? 
+        # just return the current settings of the game
+        return jsonify({
+            ...,
+            ...,
+            ...       # <-- WHAT GOES IN THESE 3 LINES? 
+        })
+    
+    elif request.method == ...:
+        # this is the method where we update data! 
+
+        data = request.get_json() or {}
+
+        if 'game_seconds' in data:
+            # Give 'GAME_SECONDS' global new value 
+            GAME_SECONDS = ...     # WHAT GOES HERE? HINT: look at how I did it below for INCLUDE_BEES. 
+
+            # we also have to reset LAST_TIME_AT if we change GAME_SECONDS value: 
+            LAST_TIME_AT = 0 
+        
+        if 'include_bees' in data: 
+            # If the request has 'include_bees' then set INCLUDE_BEES to that boolean value.  
+            INCLUDE_BEES = bool(data['include_bees'])
+
+        # return the updated settings
+        return jsonify({
+            ...,
+            ...,
+            ...    # <-- WHAT GOES IN THESE 3 LINES? 
+        })
+
+    else: 
+        # This else should NOT be reached. It means there was an error! 
+        print(f"[ants.py | api_settings()] Error! request.method: {request.method}, request.get_json(): {request.get_json()}")
+        return False 
 
 # NOTE: check very end of this file for last additional change!
 # --- END API hooks ---------

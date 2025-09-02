@@ -939,11 +939,14 @@ class GameState:
         - update points
         """
         ants_snapshot = list(self.ants)
+        
         #each ant acts now
         for ant in ants_snapshot:
             if ant.health > 0:
                 ant.action(self)
+        
         #each bee acts now
+
         self.time +=1
 
         
