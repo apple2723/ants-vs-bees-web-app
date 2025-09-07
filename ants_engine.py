@@ -946,8 +946,24 @@ class GameState:
                 ant.action(self)
         
         #each bee acts now
-
-        self.time +=1
+        for bee in self.active_bees[:]:     # Bees take actions
+            #Bees take actions if alive
+            if bee.health > 0:
+                bee.action(self)
+            
+            #This is if a bee dies
+            """
+            if bee.health <= 0:
+                num_bees -= 1
+                self.active_bees.remove(bee)
+                #Destroying a bee gives 5 points
+                self.points +=5
+                """
+       #if num_bees == 0:
+            #raise AntsWinException()
+        self.time += 1
+        # Points decrease by 1 when time goes up by 1
+        self.points -= 1
 
         
     def configure(self, beehive, create_places):

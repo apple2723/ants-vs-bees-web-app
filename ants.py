@@ -15,7 +15,7 @@ STATE_LOCK = threading.Lock()   # <-- Apurva: try to tell Oliver what this STATE
 
 GAME_SECONDS = 3
 LAST_TIME_AT = 0
-INCLUDE_BEES = False   # <-- NEW Sept 2, 2025: If False = no bees in game, if True = bees in game 
+INCLUDE_BEES = True   # <-- NEW Sept 2, 2025: If False = no bees in game, if True = bees in game 
 
 """
 Sept 2, 2025 Updates by Oliver: 
@@ -27,8 +27,8 @@ Sept 2, 2025 Updates by Oliver:
 
 Sept 2025 Tasks for Apurva: 
 
-1. In ants_engine.py, update "step_once()" function to implement Bee behavior AFTER ant actions. 
-2. Also in "step_once()" function, add something to update points for every time step. 
+1. In ants_engine.py, update "step_once()" function to implement Bee behavior AFTER ant actions.
+2. Also in "step_once()" function, add something to update points for every time step.
     
     HINT: What is supposed to happen to points for each +1 of time in our game? Do you remember? 
     How would you make that happen in "step_once()" function? 
@@ -258,9 +258,10 @@ def api_points():
 
     curl localhost:5000/api/points
     """
-    return jsonify({
-        'points' : gs.points    # Task 2: ...and this one? 
-    })
+    with STATE_LOCK:
+        return jsonify({
+            'points' : gs.points    # Task 2: ...and this one? 
+        })
 
 # Task 3: How should this route be changed to use gamestate and correctly step through time? 
 # 
@@ -273,13 +274,12 @@ def api_time_step():
 
     curl -XPOST localhost:5000/api/time-step 
     """
-    print (f"before time: {gs.time}")
-    did_game_step = game_step()
-    print (f"after time: {gs.time}")
-    return jsonify({
-        'time' : gs.time  ,
-        'did_game_step' : did_game_step
-    })
+    with STATE_LOCK:
+        did_game_step = game_step()
+        return jsonify({
+            'time' : gs.time  ,
+            'did_game_step' : did_game_step
+        })
 
 @app.route('/api/food-increase', methods = ["POST"])
 def api_food_increase():
@@ -290,10 +290,34 @@ def api_food_increase():
 
     curl -XPOST localhost:5000/api/food-increase
     """
-    gs.food += 1
-    return jsonify({
-        'food' : gs.food    
-    })
+    with STATE_LOCK:
+        gs.food += 1
+        return jsonify({
+            'food' : gs.food    
+        })
+    
+@app.route('/api/remove', methods=['POST'])
+def api_remove():
+    """
+    Removes an ant at a specific place.
+    Can use this route to test game engine directly or with Flask.
+
+    Via Terminal, call with:
+    #############################################################
+    curl -XPOST -H "Content-Type: application/json" \
+        -d '{"place" : "tunnel_0_0", "ant" : "Thrower"}' \
+        localhost:5000/api/remove
+    """
+    with STATE_LOCK:
+        data = request.get_json()
+        place_name = data['place']
+        ant_type   = data['ant']
+        try:
+            new_ant = gs.remove_ant(place_name, ant_type)
+            return jsonify({ 'status': 'ok'})
+        except Exception as e:
+            # If error -> below is thrown 
+            return jsonify({ 'status': 'error', 'message': str(e) }), 400
 
 @app.route('/api/deploy', methods=['POST'])
 def api_deploy():
@@ -307,15 +331,16 @@ def api_deploy():
         -d '{"place" : "tunnel_0_0", "ant" : "Thrower"}' \
         http://localhost:5000/api/deploy
     """
-    data = request.get_json()
-    place_name = data['place']
-    ant_type   = data['ant']
-    try:
-        new_ant = gs.deploy_ant(place_name, ant_type)
-        return jsonify({ 'status': 'ok', 'ant_id': new_ant.id, 'instance_id': id(new_ant) })
-    except Exception as e:
-        # If error -> below is thrown 
-        return jsonify({ 'status': 'error', 'message': str(e) }), 400
+    with STATE_LOCK:
+        data = request.get_json()
+        place_name = data['place']
+        ant_type   = data['ant']
+        try:
+            new_ant = gs.deploy_ant(place_name, ant_type)
+            return jsonify({ 'status': 'ok', 'ant_id': new_ant.id, 'instance_id': id(new_ant) })
+        except Exception as e:
+            # If error -> below is thrown 
+            return jsonify({ 'status': 'error', 'message': str(e) }), 400
     
 @app.route('/api/new-game', methods = ["POST"])
 def api_new_game():
@@ -326,19 +351,21 @@ def api_new_game():
 
     curl -XPOST localhost:5000/api/new-game
     """
-    global gs
-    gs = ants_engine.GameState(
-            strategy = ants_engine.interactive_strategy,
-            beehive = ants_engine.Hive(ants_engine.make_normal_assault_plan()),
-            ant_types = ants_engine.ant_types(),
-            create_places = ants_engine.dry_layout,
-            dimensions = (2,9), 
-            food=2
-    )
-    return jsonify({ 'status': 'ok'})
+    with STATE_LOCK:
+        global gs
+        gs = ants_engine.GameState(
+                strategy = ants_engine.interactive_strategy,
+                beehive = ants_engine.Hive(ants_engine.make_normal_assault_plan()),
+                ant_types = ants_engine.ant_types(),
+                create_places = ants_engine.dry_layout,
+                dimensions = (2,9), 
+                food=2
+        )
+        print ("[/new-game]Started new gamestate")
+        return jsonify({ 'status': 'ok'})
 
 # NEW Sept 2, 2025: Route to either get or update game runtime settings. 
-@app.route('/api/settings', methods = ...)  # <-- WHAT GOES HERE? 
+@app.route('/api/settings', methods = ["POST","GET"])  # <-- WHAT GOES HERE? 
 def api_settings():
     """
     This Route can be used to either get or update the settigs, including: 
@@ -349,44 +376,43 @@ def api_settings():
     NOTE: since we can change GAME_SECONDS from this function, we also 
     need to reset LAST_TIME_AT variable back to 0. 
     """
-
     global GAME_SECONDS, INCLUDE_BEES, LAST_TIME_AT
+    with STATE_LOCK:
 
-    if request.method == ...:  # <-- WHAT GOES HERE? 
-        # just return the current settings of the game
-        return jsonify({
-            ...,
-            ...,
-            ...       # <-- WHAT GOES IN THESE 3 LINES? 
-        })
-    
-    elif request.method == ...:
-        # this is the method where we update data! 
-
-        data = request.get_json() or {}
-
-        if 'game_seconds' in data:
-            # Give 'GAME_SECONDS' global new value 
-            GAME_SECONDS = ...     # WHAT GOES HERE? HINT: look at how I did it below for INCLUDE_BEES. 
-
-            # we also have to reset LAST_TIME_AT if we change GAME_SECONDS value: 
-            LAST_TIME_AT = 0 
+        if request.method == "GET":  # <-- WHAT GOES HERE? 
+            # just return the current settings of the game
+            return jsonify({
+                "game_seconds": GAME_SECONDS,
+                "include_bees": INCLUDE_BEES   
+            })
         
-        if 'include_bees' in data: 
-            # If the request has 'include_bees' then set INCLUDE_BEES to that boolean value.  
-            INCLUDE_BEES = bool(data['include_bees'])
+        elif request.method == "POST":
+            # this is the method where we update data! 
 
-        # return the updated settings
-        return jsonify({
-            ...,
-            ...,
-            ...    # <-- WHAT GOES IN THESE 3 LINES? 
-        })
+            data = request.get_json() or {}
 
-    else: 
-        # This else should NOT be reached. It means there was an error! 
-        print(f"[ants.py | api_settings()] Error! request.method: {request.method}, request.get_json(): {request.get_json()}")
-        return False 
+            if 'game_seconds' in data:
+                # Give 'GAME_SECONDS' global new value 
+                GAME_SECONDS = int(data['game_seconds'])     # WHAT GOES HERE? HINT: look at how I did it below for INCLUDE_BEES. 
+
+                # we also have to reset LAST_TIME_AT if we change GAME_SECONDS value: 
+                LAST_TIME_AT = 0 
+            
+            if 'include_bees' in data: 
+                # If the request has 'include_bees' then set INCLUDE_BEES to that boolean value. 
+                # 0 is false, 1 is true 
+                INCLUDE_BEES = bool(data['include_bees'])
+
+            # return the updated settings
+            return jsonify({
+                "game_seconds": GAME_SECONDS,
+                "include_bees": INCLUDE_BEES 
+            })
+
+        else: 
+            # This else should NOT be reached. It means there was an error! 
+            print(f"[ants.py | api_settings()] Error! request.method: {request.method}, request.get_json(): {request.get_json()}")
+            return False 
 
 # NOTE: check very end of this file for last additional change!
 # --- END API hooks ---------
